@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🦞 오픈클로로 개발팀을 만들어봅시다!</title>
+  <meta name="description" content="AI 에이전트 여러 개를 역할별로 세팅해서, 나만의 가상 '개발팀'을 구성하는 2주 실전 워크숍">
+  <meta property="og:title" content="오픈클로로 개발팀을 만들어봅시다!">
+  <meta property="og:description" content="2주 안에 나만의 AI 개발팀을 세팅하는 실전 워크숍 · 4/10, 4/17 금 저녁 · 스파크플러스 코엑스">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ko_KR">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="오픈클로로 개발팀을 만들어봅시다!">
+  <meta name="twitter:description" content="2주 안에 나만의 AI 개발팀을 세팅하는 실전 워크숍 · 4/10, 4/17 금 저녁 · 스파크플러스 코엑스">
+  <meta name="theme-color" content="#0a0a0f">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg-card: #12121c;
+      --bg-card-hover: #1a1a2e;
+      --claw-red: #e8453c;
+      --claw-red-dim: #c03830;
+      --claw-orange: #f4845f;
+      --accent-glow: rgba(232, 69, 60, 0.15);
+      --text: #e8e6e3;
+      --text-dim: #8a8a9a;
+      --text-bright: #ffffff;
+      --border: #2a2a3e;
+      --terminal-green: #4ade80;
+      --tag-bg: rgba(232, 69, 60, 0.12);
+      --tag-border: rgba(232, 69, 60, 0.3);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* ── Grain overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section {
+      padding: 80px 0;
+    }
+
+    @media (max-width: 640px) {
+      section { padding: 56px 0; }
+    }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      padding-top: 60px;
+      padding-bottom: 60px;
+    }
+
+    .hero-bg-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(232,69,60,0.08) 0%, transparent 70%);
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border: 1px solid var(--tag-border);
+      background: var(--tag-bg);
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--claw-orange);
+      margin-bottom: 28px;
+      width: fit-content;
+    }
+
+    .hero-tag .dot {
+      width: 6px;
+      height: 6px;
+      background: var(--claw-red);
+      border-radius: 50%;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 6vw, 3.6rem);
+      font-weight: 900;
+      line-height: 1.2;
+      color: var(--text-bright);
+      margin-bottom: 20px;
+      letter-spacing: -0.02em;
+    }
+
+    .hero h1 .claw { color: var(--claw-red); }
+
+    .hero-sub {
+      font-size: 1.15rem;
+      color: var(--text-dim);
+      font-weight: 300;
+      max-width: 520px;
+      margin-bottom: 40px;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .meta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .meta-chip .icon { font-size: 16px; }
+
+    /* ── Section titles ── */
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--claw-red);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 40px;
+      letter-spacing: -0.01em;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+
+    /* ── Target cards ── */
+    .target-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .target-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: border-color 0.3s, background 0.3s;
+    }
+
+    .target-card:hover {
+      border-color: rgba(232,69,60,0.3);
+      background: var(--bg-card-hover);
+    }
+
+    .target-icon {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--tag-bg);
+      border-radius: 8px;
+      font-size: 18px;
+    }
+
+    .target-text {
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ── Agent team ── */
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    @media (max-width: 540px) {
+      .agent-grid { grid-template-columns: 1fr; }
+    }
+
+    .agent-card {
+      padding: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+
+    .agent-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(232,69,60,0.3);
+    }
+
+    .agent-role {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--claw-orange);
+      margin-bottom: 4px;
+    }
+
+    .agent-name {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 8px;
+    }
+
+    .agent-desc {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+
+    /* ── Terminal block ── */
+    .terminal {
+      background: #0d0d14;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 32px 0;
+    }
+
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .terminal-dot.r { background: #ff5f57; }
+    .terminal-dot.y { background: #febc2e; }
+    .terminal-dot.g { background: #28c840; }
+
+    .terminal-body {
+      padding: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.9;
+      color: var(--text-dim);
+      overflow-x: auto;
+    }
+
+    .terminal-body .prompt { color: var(--terminal-green); }
+    .terminal-body .cmd { color: var(--text-bright); }
+    .terminal-body .comment { color: #555568; }
+    .terminal-body .output { color: var(--claw-orange); }
+
+    /* ── Curriculum ── */
+    .week-block {
+      margin-bottom: 48px;
+    }
+
+    .week-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .week-badge {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--claw-red), var(--claw-orange));
+      border-radius: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .week-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-bright);
+    }
+
+    .week-date {
+      font-size: 14px;
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+
+    .schedule-item {
+      display: flex;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(42,42,62,0.5);
+    }
+
+    .schedule-item:last-child { border-bottom: none; }
+
+    .schedule-time {
+      flex-shrink: 0;
+      width: 110px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-dim);
+      padding-top: 2px;
+    }
+
+    .schedule-content {
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .schedule-content .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      background: var(--tag-bg);
+      border: 1px solid var(--tag-border);
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--claw-orange);
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    .schedule-sub {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 4px;
+      padding-left: 8px;
+      border-left: 2px solid var(--border);
+    }
+
+    .homework-box {
+      margin-top: 20px;
+      padding: 20px;
+      background: rgba(232,69,60,0.05);
+      border: 1px solid rgba(232,69,60,0.15);
+      border-radius: 10px;
+    }
+
+    .homework-box h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--claw-orange);
+      margin-bottom: 8px;
+    }
+
+    .homework-box ul {
+      list-style: none;
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    .homework-box li::before {
+      content: '→ ';
+      color: var(--claw-red);
+    }
+
+    .homework-box li + li { margin-top: 4px; }
+
+    /* ── Outcomes ── */
+    .outcome-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .outcome-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 18px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+    }
+
+    .outcome-check {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(74,222,128,0.1);
+      border-radius: 6px;
+      color: var(--terminal-green);
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    /* ── Info table ── */
+    .info-grid {
+      display: grid;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .info-row {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      background: var(--bg-card);
+    }
+
+    @media (max-width: 480px) {
+      .info-row { grid-template-columns: 100px 1fr; }
+    }
+
+    .info-label {
+      padding: 16px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-dim);
+      background: rgba(255,255,255,0.02);
+      border-right: 1px solid var(--border);
+    }
+
+    .info-value {
+      padding: 16px 20px;
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .info-value .highlight {
+      color: var(--claw-red);
+      font-weight: 700;
+    }
+
+    /* ── Prep steps ── */
+    .prep-step {
+      padding: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+
+    .prep-step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .prep-num {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--tag-bg);
+      border: 1px solid var(--tag-border);
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--claw-red);
+    }
+
+    .prep-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-bright);
+    }
+
+    .prep-body {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.8;
+    }
+
+    .prep-body code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: rgba(255,255,255,0.06);
+      padding: 2px 8px;
+      border-radius: 4px;
+      color: var(--claw-orange);
+    }
+
+    .prep-recommend {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 4px 10px;
+      background: rgba(74,222,128,0.08);
+      border: 1px solid rgba(74,222,128,0.2);
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--terminal-green);
+      font-weight: 500;
+    }
+
+    .prep-note {
+      margin-top: 20px;
+      padding: 16px 20px;
+      background: rgba(244,132,95,0.06);
+      border-left: 3px solid var(--claw-orange);
+      border-radius: 0 8px 8px 0;
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+
+    /* ── CTA ── */
+    .cta-section {
+      text-align: center;
+      padding: 80px 0;
+    }
+
+    .cta-title {
+      font-size: clamp(1.4rem, 4vw, 1.8rem);
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 12px;
+    }
+
+    .cta-sub {
+      font-size: 15px;
+      color: var(--text-dim);
+      margin-bottom: 36px;
+    }
+
+    .cta-steps {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      max-width: 400px;
+      margin: 0 auto 32px;
+    }
+
+    .cta-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 14px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      text-align: left;
+    }
+
+    .cta-step-num {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--tag-bg);
+      border-radius: 50%;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--claw-red);
+    }
+
+    .cta-account {
+      margin-top: 24px;
+      padding: 16px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: inline-block;
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    /* ── After ── */
+    .after-box {
+      padding: 32px;
+      background: linear-gradient(135deg, rgba(232,69,60,0.06), rgba(244,132,95,0.04));
+      border: 1px solid rgba(232,69,60,0.15);
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .after-box p {
+      font-size: 15px;
+      color: var(--text-dim);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* ── FAQ ── */
+    .faq-item {
+      padding: 24px 0;
+      border-bottom: 1px solid rgba(42,42,62,0.5);
+    }
+
+    .faq-item:last-child { border-bottom: none; }
+
+    .faq-q {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-bright);
+      margin-bottom: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .faq-q::before {
+      content: 'Q.';
+      flex-shrink: 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--claw-red);
+    }
+
+    .faq-a {
+      font-size: 14px;
+      color: var(--text-dim);
+      padding-left: 30px;
+      line-height: 1.7;
+    }
+
+    /* ── Footer ── */
+    footer {
+      padding: 40px 0;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Scroll reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Floating nav ── */
+    .float-nav {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 100;
+    }
+
+    .float-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 24px;
+      background: var(--claw-red);
+      color: white;
+      border: none;
+      border-radius: 100px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Noto Sans KR', sans-serif;
+      cursor: pointer;
+      box-shadow: 0 4px 24px rgba(232,69,60,0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-decoration: none;
+    }
+
+    .float-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 32px rgba(232,69,60,0.5);
+    }
+
+    @media (max-width: 640px) {
+      .float-btn { padding: 12px 20px; font-size: 14px; }
+      .float-nav { bottom: 16px; right: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-bg-glow"></div>
+    <div class="container" style="position:relative;">
+      <div class="hero-tag">
+        <span class="dot"></span>
+        모집 중 · 선착순 10~12명
+      </div>
+      <h1>
+        <span class="claw">오픈클로</span>로<br>
+        간단한 개발팀을<br>
+        만들어봅시다!
+      </h1>
+      <p class="hero-sub">
+        AI 에이전트 여러 개를 역할별로 세팅해서,<br>
+        나만의 가상 '개발팀'을 구성하는 <strong style="color:var(--text-bright)">2주 실전 워크숍</strong>
+      </p>
+      <div class="hero-meta">
+        <div class="meta-chip"><span class="icon">📅</span> 4/10, 4/17 금 19:00–22:00</div>
+        <div class="meta-chip"><span class="icon">📍</span> 스파크플러스 코엑스점</div>
+        <div class="meta-chip"><span class="icon">💰</span> 50,000원</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><hr class="divider"></div>
+
+  <!-- Target -->
+  <section>
+    <div class="container">
+      <p class="section-label reveal">Who is this for</p>
+      <h2 class="section-title reveal">이런 분을 위한 워크숍입니다</h2>
+      <div class="target-grid">
+        <div class="target-card reveal">
+          <div class="target-icon">🤔</div>
+          <p class="target-text">AI를 실제 업무에 붙이고 싶은데, 어디서부터 시작해야 할지 모르겠는 분</p>
+        </div>
+        <div class="target-card reveal">
+          <div class="target-icon">🦞</div>
+          <p class="target-text">오픈클로가 뭔지는 알겠는데, 혼자 세팅하다 막히신 분</p>
+        </div>
+        <div class="target-card reveal">
+          <div class="target-icon">💡</div>
+          <p class="target-text">"AI 팀원이 있으면 좋겠다"고 한 번이라도 생각해본 실무자, PM, 1인 개발자</p>
+        </div>
+        <div class="target-card reveal">
+          <div class="target-icon">🚀</div>
+          <p class="target-text">챗봇 수준을 넘어서, <strong style="color:var(--text-bright)">실제로 일을 해주는 AI 에이전트</strong>를 만들어보고 싶은 분</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><hr class="divider"></div>
+
+  <!-- What you build -->
+  <section>
+    <div class="container">
+      <p class="section-label reveal">What you'll build</p>
+      <h2 class="section-title reveal">뭘 만드나요?</h2>
+      <p class="reveal" style="font-size:15px; color:var(--text-dim); margin-bottom:8px;">
+        오픈클로를 활용해 <strong style="color:var(--text-bright)">역할별 AI 에이전트</strong>를 세팅하고,
+        이들이 협업하는 <strong style="color:var(--text-bright)">가상 개발팀</strong>을 구성합니다.
+      </p>
+      <p class="reveal" style="font-size:15px; color:var(--text-dim); margin-bottom:0;">
+        2주가 끝나면 <strong style="color:var(--claw-orange)">각자 PC에 역할별 에이전트팀이 세팅된 상태</strong>로 가져가실 수 있습니다.
+      </p>
+
+      <div class="agent-grid">
+        <div class="agent-card reveal">
+          <div class="agent-role">agent/pm</div>
+          <div class="agent-name">🎯 PM 에이전트</div>
+          <div class="agent-desc">기획 정리, 일정 관리, 작업 분배</div>
+        </div>
+        <div class="agent-card reveal">
+          <div class="agent-role">agent/researcher</div>
+          <div class="agent-name">🔍 리서처 에이전트</div>
+          <div class="agent-desc">시장조사, 경쟁사 분석, 데이터 수집</div>
+        </div>
+        <div class="agent-card reveal">
+          <div class="agent-role">agent/developer</div>
+          <div class="agent-name">💻 개발자 에이전트</div>
+          <div class="agent-desc">기술 스펙 작성, 코드 스캐폴딩</div>
+        </div>
+        <div class="agent-card reveal">
+          <div class="agent-role">agent/qa</div>
+          <div class="agent-name">✅ QA 에이전트</div>
+          <div class="agent-desc">체크리스트 검증, 리스크 리뷰</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><hr class="divider"></div>
+
+  <!-- Curriculum -->
+  <section id="curriculum">
+    <div class="container">
+      <p class="section-label reveal">Curriculum</p>
+      <h2 class="section-title reveal">커리큘럼</h2>
+
+      <!-- Week 1 -->
+      <div class="week-block reveal">
+        <div class="week-header">
+          <div class="week-badge">W1</div>
+          <div>
+            <div class="week-title">오픈클로 기초 + 멀티 에이전트 첫 구성</div>
+            <div class="week-date">4월 10일(금) 19:00 ~ 22:00</div>
+          </div>
+        </div>
+
+        <div class="schedule-item">
+          <div class="schedule-time">19:00 – 19:20</div>
+          <div class="schedule-content">
+            <span class="tag">강의</span> AI 에이전트란 무엇인가 / 오픈클로 아키텍처 개요
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">19:20 – 19:50</div>
+          <div class="schedule-content">
+            <span class="tag">점검</span> 설치 확인 및 트러블슈팅
+            <div class="schedule-sub">Node.js, WSL, Codex OAuth / API 키 연결</div>
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">19:50 – 20:00</div>
+          <div class="schedule-content" style="color:var(--text-dim)">☕ 쉬는 시간</div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">20:00 – 20:40</div>
+          <div class="schedule-content">
+            <span class="tag">실습①</span> 단일 에이전트 세팅
+            <div class="schedule-sub">첫 대화, 명령 실행, 기본 동작 확인</div>
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">20:40 – 21:20</div>
+          <div class="schedule-content">
+            <span class="tag">실습②</span> 멀티 에이전트 구성 — "신규 서비스 런칭 준비"
+            <div class="schedule-sub">PM·리서처·개발자·QA 4개 에이전트 역할별 세팅<br>에이전트 간 작업 흐름 설계 및 실행</div>
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">21:20 – 21:50</div>
+          <div class="schedule-content">
+            <span class="tag">리뷰</span> 결과물 공유 + 에이전트 구성 패턴 정리
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">21:50 – 22:00</div>
+          <div class="schedule-content" style="color:var(--text-dim)">숙제 안내 및 마무리</div>
+        </div>
+
+        <div class="homework-box">
+          <h4>📝 1주차 → 2주차 숙제</h4>
+          <ul>
+            <li>내 프로젝트에 어떤 에이전트 역할이 필요한지 정리해오기</li>
+            <li>각 에이전트에게 시킬 작업 목록 3개 이상 작성</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Week 2 -->
+      <div class="week-block reveal">
+        <div class="week-header">
+          <div class="week-badge">W2</div>
+          <div>
+            <div class="week-title">Skills, Memory, Knowledge로 나만의 팀 완성</div>
+            <div class="week-date">4월 17일(금) 19:00 ~ 22:00</div>
+          </div>
+        </div>
+
+        <div class="schedule-item">
+          <div class="schedule-time">19:00 – 19:20</div>
+          <div class="schedule-content">
+            <span class="tag">리뷰</span> 각자 설계한 에이전트팀 구성 공유
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">19:20 – 20:00</div>
+          <div class="schedule-content">
+            <span class="tag">강의</span> Skills 시스템 이해 + 커스텀 Skill 작성법
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">20:00 – 20:10</div>
+          <div class="schedule-content" style="color:var(--text-dim)">☕ 쉬는 시간</div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">20:10 – 20:50</div>
+          <div class="schedule-content">
+            <span class="tag">실습③</span> Memory &amp; Knowledge 설정
+            <div class="schedule-sub">에이전트별 전문성 부여 (시스템 프롬프트, Memory 설정)<br>Knowledge 연결로 프로젝트 문맥 주입</div>
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">20:50 – 21:30</div>
+          <div class="schedule-content">
+            <span class="tag">실습④</span> 내 프로젝트에 에이전트팀 적용
+            <div class="schedule-sub">숙제에서 설계한 역할 구조를 실제로 세팅<br>강사/TA 밀착 코칭</div>
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">21:30 – 21:50</div>
+          <div class="schedule-content">
+            <span class="tag">쇼케이스</span> 각자 만든 에이전트팀 시연 + 피드백
+          </div>
+        </div>
+        <div class="schedule-item">
+          <div class="schedule-time">21:50 – 22:00</div>
+          <div class="schedule-content" style="color:var(--text-dim)">마무리 · 애프터케어 커뮤니티 안내</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><hr class="divider"></div>
+
+  <!-- Outcomes -->
+  <section>
+    <div class="container">
+      <p class="section-label reveal">Outcomes</p>
+      <h2 class="section-title reveal">워크숍이 끝나면</h2>
+      <div class="outcome-list">
+        <div class="outcome-item reveal">
+          <div class="outcome-check">✓</div>
+          <span>오픈클로로 멀티 에이전트 환경을 혼자 구성할 수 있습니다</span>
+        </div>
+        <div class="outcome-item reveal">
+          <div class="outcome-check">✓</div>
+          <span>에이전트별 Skills, Memory, Knowledge를 목적에 맞게 커스터마이징할 수 있습니다</span>
+        </div>
+        <div class="outcome-item reveal">
+          <div class="outcome-check">✓</div>
+          <span>내 업무/프로젝트에 맞는 AI 팀원 구조를 설계하고 세팅할 수 있습니다</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><hr class="divider"></div>
+
+  <!-- Info -->
+  <section>
+    <div class="container">
+      <p class="section-label reveal">Details</p>
+      <h2 class="section-title reveal">워크숍 정보</h2>
+      <div class="info-grid reveal">
+        <div class="info-row">
+          <div class="info-label">일시</div>
+          <div class="info-value">4월 10일(금), 17일(금)<br>저녁 7시 – 10시 <span style="color:var(--text-dim)">(총 2회, 6시간)</span></div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">장소</div>
+          <div class="info-value">스파크플러스 코엑스점</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">정원</div>
+          <div class="info-value"><span class="highlight">10~12명</span> <span style="color:var(--text-dim)">(선착순 마감)</span></div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">참가비</div>
+          <div class="info-value"><span class="highlight">50,000원</span> <span style="color:var(--text-dim)">(계좌이체, 입금순 확정)</span></div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">진행</div>
+          <div class="info-value"><strong>류성진</strong> <span style="color:var(--text-dim)">— AI 에이전트 아키텍처를 연구하는 1인 개발자/PM</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><hr class="divider"></div>
+
+  <!-- Prep -->
+  <section>
+    <div class="container">
+      <p class="section-label reveal">Before you come</p>
+      <h2 class="section-title reveal">참가 전 준비사항</h2>
+      <p class="reveal" style="font-size:14px; color:var(--text-dim); margin-bottom:24px;">
+        워크숍 시간을 최대한 실습에 쓰기 위해, 아래 3가지를 <strong style="color:var(--text-bright)">반드시 사전에 완료</strong>해 주세요.
+      </p>
+
+      <div class="prep-step reveal">
+        <div class="prep-step-header">
+          <div class="prep-num">1</div>
+          <div class="prep-title">Node.js 설치</div>
+        </div>
+        <div class="prep-body">
+          macOS / Linux: Node.js 22 이상<br>
+          Windows: WSL 설치 후 WSL 내에 Node.js 설치<br>
+          확인: 터미널에서 <code>node -v</code> 입력 시 버전 출력
+        </div>
+      </div>
+
+      <div class="prep-step reveal">
+        <div class="prep-step-header">
+          <div class="prep-num">2</div>
+          <div class="prep-title">AI API 준비</div>
+        </div>
+        <div class="prep-body">
+          <span class="prep-recommend">✦ 추천</span><br>
+          <strong style="color:var(--text-bright)">ChatGPT 구독(Plus 이상) → Codex OAuth 연결</strong><br>
+          별도 API 키 발급 없이 오픈클로와 바로 연결 가능해 가장 간편합니다<br><br>
+          <strong style="color:var(--text)">추가로 Claude API 키가 있으면 더 좋습니다</strong><br>
+          에이전트별로 다른 모델을 배정하는 실습에서 활용합니다
+        </div>
+      </div>
+
+      <div class="prep-step reveal">
+        <div class="prep-step-header">
+          <div class="prep-num">3</div>
+          <div class="prep-title">오픈클로(OpenClaw) 설치</div>
+        </div>
+        <div class="prep-body">
+          <code>npm install -g openclaw@latest</code><br>
+          <code>openclaw onboard --install-daemon</code> 으로 초기 설정<br>
+          확인: <code>openclaw --version</code> 입력 시 버전 출력
+        </div>
+      </div>
+
+      <div class="terminal reveal">
+        <div class="terminal-bar">
+          <div class="terminal-dot r"></div>
+          <div class="terminal-dot y"></div>
+          <div class="terminal-dot g"></div>
+        </div>
+        <div class="terminal-body">
+          <span class="comment"># 환경 확인</span><br>
+          <span class="prompt">$</span> <span class="cmd">node -v</span><br>
+          <span class="output">v22.14.0</span><br><br>
+          <span class="comment"># 오픈클로 설치</span><br>
+          <span class="prompt">$</span> <span class="cmd">npm install -g openclaw@latest</span><br>
+          <span class="prompt">$</span> <span class="cmd">openclaw onboard --install-daemon</span><br>
+          <span class="output">🦞 OpenClaw is ready!</span><br><br>
+          <span class="comment"># 버전 확인</span><br>
+          <span class="prompt">$</span> <span class="cmd">openclaw --version</span><br>
+          <span class="output">v2026.3.20</span>
+        </div>
+      </div>
+
+      <div class="prep-note reveal">
+        ⚠️ 설치 과정에서 막히셔도 괜찮습니다! 사전 가이드 문서를 별도로 제공하며, 1주차 시작 시 환경 점검 시간이 있습니다. 단, 최소한 <strong style="color:var(--text)">Node.js와 ChatGPT 구독(또는 다른 AI API)</strong>은 꼭 준비해 주세요.
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><hr class="divider"></div>
+
+  <!-- CTA -->
+  <section class="cta-section" id="apply">
+    <div class="container">
+      <div class="reveal">
+        <h2 class="cta-title">신청 방법</h2>
+        <p class="cta-sub">입금순으로 참석이 확정됩니다 (선착순)</p>
+        <div class="cta-steps">
+          <div class="cta-step">
+            <div class="cta-step-num">1</div>
+            <span>아래 계좌로 참가비 <strong style="color:var(--text-bright)">50,000원</strong>을 입금</span>
+          </div>
+          <div class="cta-step">
+            <div class="cta-step-num">2</div>
+            <span>입금 후 <strong style="color:var(--text-bright)">DM으로 입금자명</strong> 알려주기</span>
+          </div>
+          <div class="cta-step">
+            <div class="cta-step-num">3</div>
+            <span>확정 안내 받으면 끝! 🎉</span>
+          </div>
+        </div>
+        <div class="cta-account">
+          💬 입금 계좌 및 문의: <strong style="color:var(--text-bright)">[추후 안내]</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><hr class="divider"></div>
+
+  <!-- After -->
+  <section>
+    <div class="container">
+      <div class="after-box reveal">
+        <p class="section-label" style="margin-bottom:16px">After the workshop</p>
+        <h3 style="font-size:18px; font-weight:700; color:var(--text-bright); margin-bottom:12px;">워크숍 이후에는?</h3>
+        <p>
+          참가자 전용 디스코드/오픈채팅 커뮤니티에 초대됩니다.<br>
+          워크숍에서 만든 에이전트팀을 계속 발전시키면서,<br>
+          서로의 세팅과 활용법을 공유할 수 있습니다.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><hr class="divider"></div>
+
+  <!-- FAQ -->
+  <section>
+    <div class="container">
+      <p class="section-label reveal">FAQ</p>
+      <h2 class="section-title reveal">자주 묻는 질문</h2>
+
+      <div class="faq-item reveal">
+        <div class="faq-q">개발자가 아닌데 참여할 수 있나요?</div>
+        <div class="faq-a">터미널 기본 조작(명령어 입력, 복사/붙여넣기)이 가능하고, 사전 준비사항을 완료할 수 있다면 참여 가능합니다. PM이나 기획자 분들도 환영합니다.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q">오픈클로를 써본 적이 없어도 되나요?</div>
+        <div class="faq-a">네, 1주차에서 기초부터 시작합니다. 다만 사전에 설치까지는 완료해 주셔야 합니다.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q">API 사용 비용은 얼마나 드나요?</div>
+        <div class="faq-a">ChatGPT 구독(Plus $20/월)이 있으면 Codex OAuth로 연결해 추가 비용 없이 실습 가능합니다. Claude API를 함께 사용하더라도 실습 중 발생하는 비용은 수천 원 이내입니다.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q">노트북은 꼭 가져가야 하나요?</div>
+        <div class="faq-a">네, 각자 노트북에 직접 세팅하는 핸즈온 워크숍입니다. macOS, Windows(WSL), Linux 모두 가능합니다.</div>
+      </div>
+      <div class="faq-item reveal">
+        <div class="faq-q">환불 규정은 어떻게 되나요?</div>
+        <div class="faq-a">워크숍 3일 전까지 전액 환불 가능하며, 이후에는 환불이 어렵습니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>🦞 오픈클로로 개발팀을 만들어봅시다! · 2025 류성진</p>
+    </div>
+  </footer>
+
+  <!-- Floating CTA -->
+  <div class="float-nav">
+    <a href="#apply" class="float-btn">🦞 신청하기</a>
+  </div>
+
+  <script>
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    reveals.forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

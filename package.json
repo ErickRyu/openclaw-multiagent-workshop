@@ -1,0 +1,10 @@
+{
+  "name": "openclaw-multiagent-workshop",
+  "version": "1.0.0",
+  "description": "오픈클로로 개발팀을 만들어봅시다! - 멀티 에이전트 워크숍 랜딩페이지",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve .",
+    "build": "echo 'Static site - no build needed'"
+  }
+}
